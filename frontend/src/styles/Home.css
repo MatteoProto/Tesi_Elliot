@@ -1,0 +1,41 @@
+
+.img{
+    width: 50%;
+    height: 50%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+.Conatainer{
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    gap: 60px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Button {
+    background-color: #007BFF;
+    color: white;
+    font-weight: bold;
+    text-transform: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 10px;
+}
+
+.Button:hover {
+    background-color: #0056b3;
+}

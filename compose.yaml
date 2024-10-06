@@ -1,0 +1,52 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+
+  backend:
+    env_file:
+      - .env
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./backend/data:/data
+      - ./backend/results:/results
+      - ./backend/splitted_data:/splitted_data
+    depends_on:
+      - redis
+      - celery_worker
+    command: flask run --host=0.0.0.0
+    networks:
+      - my_network
+
+  redis:
+    image: "redis:alpine"
+    networks:
+      - my_network
+
+  # Worker Celery
+  celery_worker:
+    build:
+      context: ./backend
+    command: celery -A main.celery worker --loglevel=info -E
+    volumes:
+      - ./backend:/app
+      - ./backend/data:/data
+      - ./backend/results:/results
+      - ./backend/splitted_data:/splitted_data
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    user: "1000:1000"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge

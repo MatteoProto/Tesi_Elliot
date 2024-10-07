@@ -2,11 +2,11 @@ import os
 import shutil
 import pandas as pd
 from flask import app, request
-from aws import upload_file_to_s3
-from db import DBConnection
+from backend.controllers.aws import upload_file_to_s3
+from backend.controllers.db import DBConnection
 from celery import shared_task, Celery
 from controllers.run_experiment import run_preprocessing, run_evaluation, run_recommendation
-from email_util import send_email
+from backend.controllers.email_util import send_email
 
 
 def save_task_status(task_id, user_id, status, task_type, result=None, error=None):

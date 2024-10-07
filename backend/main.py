@@ -1,5 +1,5 @@
 from datetime import timedelta
-from app_factory import create_app, create_celery
+from backend.controllers.app_factory import create_app, create_celery
 from controllers.create_model_config_dict import create_model_config_dict
 from controllers.create_evaluation_config_dict import create_evaluation_config_dict
 from controllers.create_config_dict import create_config_dict
@@ -11,7 +11,7 @@ from celery_config import make_celery
 from celery.result import AsyncResult 
 import redis
 from tasks import run_preprocessing_task, run_evaluation_task, run_recommendation_task, save_task_status
-from db import DBConnection
+from backend.controllers.db import DBConnection
 from werkzeug.security import check_password_hash, generate_password_hash
 import mysql.connector
 from mysql.connector import IntegrityError

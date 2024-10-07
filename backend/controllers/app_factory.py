@@ -1,6 +1,6 @@
 from datetime import timedelta
-from backend.controllers.db import DBConnection
-from backend.controllers.email_util import close_smtp_connection
+from db import DBConnection
+from email_util import close_smtp_connection
 from flask import Flask
 from celery import Celery
 import redis
@@ -17,8 +17,8 @@ def create_app():
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  
     app.config['SESSION_REDIS'] = redis.StrictRedis(host='redis', port=6379, db=0)
     app.config['SESSION_COOKIE_SECURE'] = False
-    app.config['CELERY_BROKER_URL'] = 'redis://redis:6379/0'
-    app.config['CELERY_RESULT_BACKEND'] = 'redis://redis:6379/0'
+    app.config['CELERY_BROKER_URL'] = 'amqp://guest:guest@rabbitmq:5672//'
+    app.config['result_backend'] = 'redis://redis:6379/0'
 
     @app.teardown_appcontext
     def close_connections(exception):
@@ -30,7 +30,7 @@ def create_app():
 def create_celery(app=None):
     celery = Celery(
         app.import_name,
-        backend=app.config['CELERY_RESULT_BACKEND'],
+        backend=app.config['result_backend'],
         broker=app.config['CELERY_BROKER_URL'],
         broker_transport_options = {
             'max_retries': 3,

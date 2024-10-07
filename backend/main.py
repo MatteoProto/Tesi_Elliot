@@ -9,7 +9,6 @@ from flask_cors import CORS
 import os
 from celery_config import make_celery
 from celery.result import AsyncResult 
-import redis
 from tasks import run_preprocessing_task, run_evaluation_task, run_recommendation_task, save_task_status
 from backend.controllers.db import DBConnection
 from werkzeug.security import check_password_hash, generate_password_hash

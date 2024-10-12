@@ -14,9 +14,6 @@ services:
       - "5000:5000"
     volumes:
       - ./backend:/app
-      - ./backend/data:/data
-      - ./backend/results:/results
-      - ./backend/splitted_data:/splitted_data
     depends_on:
       - redis
       - rabbitmq
@@ -31,12 +28,15 @@ services:
       - my_network
   
   rabbitmq:
-    image: "rabbitmq:3-management-alpine"
+    image: "rabbitmq:alpine"
     ports:
       - "15672:15672"  # Porta per interfaccia di gestione
       - "5672:5672"    # Porta per la connessione del broker
     networks:
       - my_network
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
 
   # Worker Celery
   celery_worker:
@@ -45,9 +45,6 @@ services:
     command: celery -A main.celery worker --loglevel=info -E
     volumes:
       - ./backend:/app
-      - ./backend/data:/data
-      - ./backend/results:/results
-      - ./backend/splitted_data:/splitted_data
     depends_on:
       - redis
       - rabbitmq

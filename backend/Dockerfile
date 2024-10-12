@@ -44,4 +44,4 @@ ENV FLASK_APP=main.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Run the application.
-CMD python3 -m flask --app main run --host=0.0.0.0
+CMD python3 -m flask --app main run --host=0.0.0.0 --with-threads

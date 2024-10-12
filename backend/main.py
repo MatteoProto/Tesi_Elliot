@@ -45,12 +45,6 @@ def preprocess_json():
         
     # Invia il task a Celery 
     task = run_preprocessing_task.apply_async(args=[config, user])
-    task_id = task.id
-        
-    # Registra lo stato "enqueued" nel database
-    user_id = user['id']
-    task_type = 'preprocessing'
-    save_task_status(task_id, user_id, 'enqueued', task_type)
         
     # Restituisci immediatamente il task_id al frontend
     return jsonify({"task_id": task_id}), 202
@@ -71,12 +65,6 @@ def evaluationApi():
     
     # Invia il task a Celery 
     task = run_evaluation_task.apply_async(args=[config, path, user])
-    task_id = task.id
-    
-    # Registra lo stato "enqueued" nel database
-    user_id = user['id']
-    task_type = 'evaluation'
-    save_task_status(task_id, user_id, 'enqueued', task_type)
     
     return jsonify({"task_id": task.id}), 202
 
@@ -96,12 +84,6 @@ def recommendationmodel_json():
     
     # Invia il task a Celery 
     task = run_recommendation_task.apply_async(args=[config, path, user])
-    task_id = task.id
-    
-    # Registra lo stato "enqueued" nel database
-    user_id = user['id']
-    task_type = 'recommendation'
-    save_task_status(task_id, user_id, 'enqueued', task_type)
     
     return jsonify({"task_id": task.id}), 202
 

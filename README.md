@@ -9,7 +9,6 @@ docker-compose up --scale celery_worker=n (n numero di worker celery che si vuol
 mysql -h database-1.czoq4wkie1hv.eu-north-1.rds.amazonaws.com -P 3306 -u admin -p
 USE database-1;
 SHOW TABLES;
-SELECT * FROM (tabella);  
-
-# Connessione alla console redis
-docker exec -it tesimia-redis-1 redis-cli
+SELECT * FROM (tabella); 
+SHOW CREATE TABLE task;
+ALTER TABLE task AUTO_INCREMENT = 1000000;

@@ -10,9 +10,7 @@ s3 = boto3.client(
 )
 
 def upload_file_to_s3(file_path, s3_file_name, bucket_name="prova1209876"):
-    """
-    Carica un file su S3 e restituisce l'URL pubblico o firmato.
-    """
+    #Carica un file su S3 e restituisce l'URL pubblico o firmato.
     try:
         # Carica il file su S3
         s3.upload_file(file_path, bucket_name, s3_file_name)

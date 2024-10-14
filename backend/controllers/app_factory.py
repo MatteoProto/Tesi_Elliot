@@ -1,6 +1,6 @@
 from datetime import timedelta
-from db import DBConnection
-from email_util import close_smtp_connection
+from .db import DBConnection
+from .email_util import close_smtp_connection
 from flask import Flask
 from celery import Celery
 import redis

@@ -11,7 +11,7 @@ password = os.getenv("EMAIL_PASSWORD")
 smtp_connection = None
 
 def init_smtp_connection():
-    """Inizializza la connessione SMTP con il server"""
+    #Inizializza la connessione SMTP con il server
     global smtp_connection
 
     # Verifica che le variabili d'ambiente siano definite
@@ -51,8 +51,8 @@ def send_email(user, string, retries=3):
                 raise ValueError("Connessione SMTP non disponibile. Verifica le credenziali.")
 
             # Crea e invia l'email
-            subject = "Celery preprocessing_task completed"
-            body = f"Gentile utente, il task celery da lei avviato è stato completato: {string}"
+            subject = "Test Elliot completato"
+            body = f"Gentile utente, il task da lei avviato è stato completato: {string}"
 
             message = MIMEText(body, 'plain', 'utf-8')
             message['Subject'] = subject

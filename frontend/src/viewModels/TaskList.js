@@ -23,10 +23,10 @@ function Tasks({ logged, task, setTask }) {
     }
   };
 
-  // Effettua il polling ogni 5 secondi
+  // Effettua il polling ogni 2 secondi
   useEffect(() => {
-    fetchTasks(); // Recupera i task la prima volta
-    const intervalId = setInterval(fetchTasks, 5000); // Polling ogni 5 secondi
+    fetchTasks(); 
+    const intervalId = setInterval(fetchTasks, 2000); 
 
     return () => clearInterval(intervalId); 
   }, [logged]); 

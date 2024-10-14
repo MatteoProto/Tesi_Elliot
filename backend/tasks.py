@@ -1,16 +1,15 @@
 import os
 import shutil
-import pandas as pd
-from flask import app, request
-from backend.controllers.aws import upload_file_to_s3
-from backend.controllers.db import DBConnection
-from celery import shared_task, Celery
+from flask import request
+from controllers.aws import upload_file_to_s3
+from controllers.db import DBConnection
+from celery import shared_task
 from controllers.run_experiment import run_preprocessing, run_evaluation, run_recommendation
-from backend.controllers.email_util import send_email
+from controllers.email_util import send_email
 
 
 def save_task_status(task_id, user_id, status, task_type, result=None, error=None):
-    """Salva o aggiorna lo stato di un task nel database utilizzando task_id come chiave primaria."""
+    #Salva o aggiorna lo stato di un task nel database utilizzando task_id come chiave primaria.
     cursor = DBConnection.get_cursor()
     cursor.execute(
         '''
@@ -29,8 +28,7 @@ def save_task_status(task_id, user_id, status, task_type, result=None, error=Non
 
 # Task di preprocessing
 @shared_task(bind=True)
-def run_preprocessing_task(self, config, user):
-    task_id = self.request.id  # Celery genera il task_id
+def run_preprocessing_task(self, config, user, task_id):
     user_id = user['id'] 
     task_type = 'preprocessing'
     
@@ -44,15 +42,10 @@ def run_preprocessing_task(self, config, user):
         # Recupera i risultati del task   
         request_no = config['experiment']['splitting']['save_folder'].split('splitted_data/')[1]
         dir_path = 'splitted_data/' + request_no
-        output_filename = 'zipped_data/' + task_id
+        output_filename = 'zipped_data/' + str(task_id)
         
         #Crea il file zip, se il processo non ha creato il file con i risultati ci salva all'interno preprocessed
-        try:
-            shutil.make_archive(output_filename, 'zip', dir_path)
-        except:
-            os.makedirs(dir_path, exist_ok=True)
-            pd.DataFrame(preprocessed_dataset).to_csv(f'{dir_path}/preprocessed_dataset.csv', index=False)
-            shutil.make_archive(output_filename, 'zip', dir_path)
+        shutil.make_archive(output_filename, 'zip', dir_path)
         
         shutil.rmtree(f'data/{request_no}', ignore_errors=True)
         shutil.rmtree(f'{dir_path}', ignore_errors=True)
@@ -78,8 +71,7 @@ def run_preprocessing_task(self, config, user):
 
 # Task per l'evaluation
 @shared_task(bind=True)
-def run_evaluation_task(self, config, path, user):
-    task_id = self.request.id  # Celery genera il task_id
+def run_evaluation_task(self, config, path, user, task_id):
     user_id = user['id']
     task_type = 'evaluetion'
     
@@ -93,15 +85,10 @@ def run_evaluation_task(self, config, path, user):
         # Recupera i risultati del task   
         request_no = config['experiment']['splitting']['save_folder'].split('splitted_data/')[1]
         path = request.args.get('path')
-        output_filename = 'zipped_data/' + task_id
+        output_filename = 'zipped_data/' + str(task_id)
         
         #Crea il file zip, se il processo non ha creato il file con i risultati ci salva all'interno preprocessed
-        try:
-            shutil.make_archive(output_filename, 'zip', path)
-        except:
-            os.makedirs(path, exist_ok=True)
-            pd.DataFrame(result).to_csv(f'{path}/preprocessed_dataset.csv', index=False)
-            shutil.make_archive(output_filename, 'zip', path)
+        shutil.make_archive(output_filename, 'zip', path)
             
         shutil.rmtree(f'data/{request_no}', ignore_errors=True)
         shutil.rmtree(f'{path}', ignore_errors=True)
@@ -127,8 +114,7 @@ def run_evaluation_task(self, config, path, user):
 
 # Task per la raccomandazione
 @shared_task(bind=True)
-def run_recommendation_task(self, config, path, user):
-    task_id = self.request.id  # Celery genera il task_id
+def run_recommendation_task(self, config, path, user, task_id):
     user_id = user['id'] 
     task_type = 'recommendetion'
     
@@ -142,15 +128,10 @@ def run_recommendation_task(self, config, path, user):
         # Recupera i risultati del task   
         request_no = config['experiment']['save_folder'].split('results/')[1]
         dir_path = 'resuts/' + request_no
-        output_filename = 'zipped_data/' + task_id     
+        output_filename = 'zipped_data/' + str(task_id)     
         
         #Crea il file zip, se il processo non ha creato il file con i risultati ci salva all'interno preprocessed
-        try:
-            shutil.make_archive(output_filename, 'zip', dir_path)
-        except:
-            os.makedirs(dir_path, exist_ok=True)
-            pd.DataFrame(result).to_csv(f'{dir_path}/preprocessed_dataset.csv', index=False)
-            shutil.make_archive(output_filename, 'zip', dir_path)
+        shutil.make_archive(output_filename, 'zip', dir_path)
         
         shutil.rmtree(f'data/{request_no}', ignore_errors=True)
         shutil.rmtree(f'{dir_path}', ignore_errors=True)

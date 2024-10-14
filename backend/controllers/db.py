@@ -7,7 +7,7 @@ class DBConnection:
     _instance = None
 
     def __init__(self):
-        """Costruttore privato per gestire la connessione singleton."""
+        #Costruttore privato per gestire la connessione singleton.
         if DBConnection._instance is None:
             try:
                 # Creazione della connessione al database

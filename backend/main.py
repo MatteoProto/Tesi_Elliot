@@ -1,18 +1,14 @@
-from datetime import timedelta
-from backend.controllers.app_factory import create_app, create_celery
+from controllers.app_factory import create_app, create_celery
 from controllers.create_model_config_dict import create_model_config_dict
 from controllers.create_evaluation_config_dict import create_evaluation_config_dict
 from controllers.create_config_dict import create_config_dict
-from flask import Flask, json, render_template, request, jsonify, send_file, session
+from flask import json, request, jsonify, session
 from flask_session import Session
 from flask_cors import CORS 
 import os
-from celery_config import make_celery
-from celery.result import AsyncResult 
-from tasks import run_preprocessing_task, run_evaluation_task, run_recommendation_task, save_task_status
-from backend.controllers.db import DBConnection
+from tasks import run_preprocessing_task, run_evaluation_task, run_recommendation_task
+from controllers.db import DBConnection
 from werkzeug.security import check_password_hash, generate_password_hash
-import mysql.connector
 from mysql.connector import IntegrityError
 
 
@@ -27,6 +23,21 @@ Session(app)
 with open(os.path.join(os.path.dirname(__file__),'static','js','models2.json')) as f:
     file = json.load(f)
 
+def create_task(user_id, task_type):
+    #Salva o aggiorna lo stato di un task nel database utilizzando task_id come chiave primaria.
+    cursor = DBConnection.get_cursor()
+    cursor.execute(
+        '''
+        INSERT INTO task (user_id, status, task_type, result, error)
+        VALUES (%s, %s, %s, %s, %s)
+        ''',
+        (user_id, 'enqueued', task_type, None, None)
+    )
+    task_id = cursor.lastrowid
+    DBConnection.get_connection().commit()
+    cursor.close()
+    return task_id
+
 # API per effettuare il preprocessing con una richiesta asincrona
 @app.route("/api/v1/preprocessing-json", methods=['POST'])
 def preprocess_json():    
@@ -38,14 +49,16 @@ def preprocess_json():
     cursor.execute('SELECT * FROM user WHERE id = %s', (session['user_id'],))
     user = cursor.fetchone()
     cursor.close()
-        
+    
+    # Crea il task nel db
+    task_id=create_task(user['id'],'preprocess')    
         
     # Crea il config per il task
     config = create_config_dict(request)
         
     # Invia il task a Celery 
-    task = run_preprocessing_task.apply_async(args=[config, user])
-        
+    task = run_preprocessing_task.apply_async(args=[config, user, task_id])
+      
     # Restituisci immediatamente il task_id al frontend
     return jsonify({"task_id": task_id}), 202
         
@@ -59,14 +72,17 @@ def evaluationApi():
     cursor.execute('SELECT * FROM user WHERE id = %s', (session['user_id'],))
     user = cursor.fetchone()
     cursor.close()
+        
+    # Crea il task nel db
+    task_id=create_task(user['id'],'evaluation')    
     
     # Crea il config per il task
     config, path = create_evaluation_config_dict(request)
     
     # Invia il task a Celery 
-    task = run_evaluation_task.apply_async(args=[config, path, user])
+    task = run_evaluation_task.apply_async(args=[config, path, user, task_id])
     
-    return jsonify({"task_id": task.id}), 202
+    return jsonify({"task_id": task_id}), 202
 
 # API per il modello di raccomandazione con task asincrono
 @app.route("/api/v1/recommendationmodel-json", methods=['GET', 'POST'])
@@ -79,18 +95,20 @@ def recommendationmodel_json():
     user = cursor.fetchone()
     cursor.close()
     
+    # Crea il task nel db
+    task_id=create_task(user['id'],'recommendation')    
+    
     # Crea il config per il task
     config, path = create_model_config_dict(request)
     
     # Invia il task a Celery 
-    task = run_recommendation_task.apply_async(args=[config, path, user])
+    task = run_recommendation_task.apply_async(args=[config, path, user, task_id])
     
-    return jsonify({"task_id": task.id}), 202
+    return jsonify({"task_id": task_id}), 202
 
 @app.route('/api/v1/task_status/<task_id>', methods=['GET'])
 def get_task_status(task_id):
-    """Recupera lo stato di un task dal database."""
-    
+    #Recupera lo stato di un task dal database.    
     cursor = DBConnection.get_cursor()
     cursor.execute('SELECT * FROM task WHERE task_id = %s', (task_id,))
     task = cursor.fetchone()
@@ -112,7 +130,6 @@ def get_task_status(task_id):
 def get_user_tasks():
     if 'user_id' not in session:
         return jsonify({'error': 'User not authenticated'}), 401  # Restituisce un errore se l'utente non è autenticato
-    """Recupera tutti i task associati a un utente specifico."""
     user_id = session['user_id']
     
     cursor = DBConnection.get_cursor()
